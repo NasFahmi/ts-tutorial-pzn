@@ -5,14 +5,11 @@ import { prismaClient } from '../application/database/database';
 const request = supertest(app);
 
 describe('User API', () => {
-    beforeEach(async () => {
-        // Bersihkan database sebelum setiap test
-        await prismaClient.user.deleteMany();
-    });
+
 
     afterAll(async () => {
         // Tutup koneksi Prisma setelah semua test
-        await prismaClient.$disconnect();
+        await prismaClient.user.deleteMany();
     });
 
     describe('POST /api/users/', () => {
