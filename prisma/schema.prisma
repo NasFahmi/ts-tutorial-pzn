@@ -14,16 +14,15 @@ datasource db {
 }
 
 model User {
-  username String @id @db.VarChar(100)
-  password String @db.VarChar(100)
-  name String @db.VarChar(100)
-  token String? @db.VarChar(100)
+  id        Int      @id @default(autoincrement())
+  username  String   @db.VarChar(100)
+  password  String   @db.VarChar(100)
+  name      String   @db.VarChar(100)
+  token     String?  @db.VarChar(100)
+  expiresAt DateTime?
+  contacts  Contact[]
 
-  contacts Contact[]
-  // relasi one to many dengan contact
-
-  @@map("users") 
-  // @@map untuk memberikan nama di tabelnya
+  @@map("users")
 }
 
 model Contact{
@@ -32,12 +31,12 @@ model Contact{
   lastname String @db.VarChar(100)
   email String? @db.VarChar(100)
   phone String? @db.VarChar(100)
-  userId String @db.VarChar(100)
+  userId Int
 
   @@map("contacts")
   // @@map digunakan untuk memberikan nama di tabelnya
 
-  user User @relation(fields: [userId],references: [username])
+  user User @relation(fields: [userId],references: [id])
 
   address Address[]  
 }

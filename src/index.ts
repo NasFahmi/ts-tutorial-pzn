@@ -2,9 +2,7 @@ import express, { urlencoded } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from 'express-rate-limit';
-import { userRoutes } from "./application/routes/user-route";
 import routes from "./application/routes/routes";
-import { errorMiddleware } from "./application/middleware/error-midleware";
 export const app = express()
 
 app.use(helmet())
