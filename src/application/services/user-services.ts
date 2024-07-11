@@ -1,6 +1,7 @@
-import jwt from "jsonwebtoken";
+
 import { prismaClient } from "../database/database";
 import { ResponseError } from "../error/response-error";
+import uuid4 from "uuid4";
 import type {
     CreateUserRequest,
     loginUserRequest,
@@ -9,6 +10,9 @@ import type {
 } from "../model/user-model";
 import { UserValidation } from "../validations/user-validation";
 import bcrypt from "bcrypt";
+import { JWTToken } from "../utils/jwt";
+import type { JwtPayload } from "jsonwebtoken";
+import type { User } from "@prisma/client";
 export class UserService {
     // static async register(request: CreateUserRequest): Promise<SuccessCreateUserResponse> {
     //     try {
@@ -102,11 +106,12 @@ export class UserService {
         const loginRequest = UserValidation.loginValidation.parse(
             request
         ) as loginUserRequest;
-        const user = await prismaClient.user.findFirst({
+        let user = await prismaClient.user.findFirst({
             where: {
                 username: loginRequest.username,
             },
         });
+
         if (!user) {
             throw new ResponseError(400, "Username Not Found");
         }
@@ -118,37 +123,79 @@ export class UserService {
             throw new ResponseError(400, "Password Not Match");
         }
         //creating a access token
-        const accessToken = jwt.sign(
-            {
-                name: user.name,
-                username: user.username,
-            },
-            Bun.env.ACCESS_TOKEN_SECRET!,
-            { expiresIn: '15m', algorithm: 'HS256' }
-        );
+        /**
+         * biasanya acces token berisi 
+         * {
+            "iss": "https://yourapp.com", => iss (Issuer): Siapa yang menerbitkan token.
+            "sub": "1234567890", =>(Subject): Tentang siapa token ini (biasanya ID pengguna).
+            "aud": "https://api.yourapp.com", =>(Subject): Tentang siapa token ini (biasanya ID pengguna).
+            "exp": 1516239022, => (Expiration Time): Kapan token kadaluarsa
+            "nbf": 1516238022, => (Not Before): Waktu sebelum token tidak boleh diterima
+            "iat": 1516238022, =>(Issued At): Kapan token diterbitkan
+            "jti": "unique-token-id-123", => (JWT ID): Identifier unik untuk token ini
+            "name": "John Doe",
+            "email": "john@example.com",
+            "role": "admin",
+            "companyId": "abc123",
+            "planType": "premium"
+            }
+         */
+        console.log(user)
+        console.log(uuid4())
 
-        const refreshToken = jwt.sign(
-            {
-                name: user.name,
-                username: user.username,
-            },
-            Bun.env.ACCESS_TOKEN_SECRET!,
-            { expiresIn: '30d', algorithm: 'HS256' }
-        );
+        const accessToken = JWTToken.generateAccessToken({
+            sub: user.id,
+            name: user.name,
+            jti: uuid4(),
+            iat: Math.floor(Date.now() / 1000)
+        })
 
-        await prismaClient.user.update({
-            where: { id: user.id },
+        // console.log(`token ${accessToken}`);
+        /**
+         * {
+  "jti": "unique-refresh-token-id-456",
+  "sub": "1234567890",
+  "exp": 1516239022,
+  "iat": 1516238022,
+  "aud": "https://api.yourapp.com",
+  "iss": "https://yourapp.com"
+}
+         */
+
+        const refreshToken = JWTToken.generateRefreshToken({
+            sub: user.id,
+            name: user.name,
+            jti: uuid4(),  // Unique identifier for this token
+            iat: Math.floor(Date.now() / 1000),
+            // exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30),  // 15 minutes from now
+        })
+        // console.log(refreshToken)
+
+        user = await prismaClient.user.update({
+            where: {
+                id: user.id,
+            },
             data: {
                 token: refreshToken,
                 expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 hari dari sekarang
             }
         });
 
+        // console.log(userHasToken);
         const response: SuccessLoginUserResponse = {
             username: user.username,
             password: user.password,
-            token: "",
+            accesToken: accessToken,
+            refreshToken: refreshToken
         };
         return response;
+    }
+    static async getUserByRefreshToken (refreshToken : string): Promise<User>{
+        const user = await prismaClient.user.findFirst({
+            where  : {
+                token : refreshToken
+            }
+        })
+        return user!;
     }
 }

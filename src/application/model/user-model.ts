@@ -1,3 +1,4 @@
+
 /**
  * request body ketika create user
  * request body memiliki format
@@ -45,7 +46,8 @@ export type loginUserRequest = {
 export type SuccessLoginUserResponse = {
     username: string;
     password: string;
-    token: string;
+    accesToken: string;
+    refreshToken: string;
 }
 
 // failed login user response
@@ -81,4 +83,11 @@ export type SuccessUpdateUserResponse = {
 
 export type LogoutUserResponse = {
     message: string
+}
+
+export interface payload {
+    sub: string,
+    name: string,
+    jti: string,  // Unique identifier for this token
+    iat: number,
 }

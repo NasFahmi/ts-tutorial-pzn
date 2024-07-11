@@ -6,17 +6,16 @@ const request = supertest(app);
 
 describe('User API', () => {
 
-
     afterAll(async () => {
         // Tutup koneksi Prisma setelah semua test
         await prismaClient.user.deleteMany();
     });
 
-    describe('POST /api/users/', () => {
+    describe('POST /api/users/register', () => {
         it('should register a new user', async () => {
-            const res = await request.post('/api/users')
+            const res = await request.post('/api/users/register')
                 .send({
-                    username: 'testuser',
+                    username: 'testuser2',
                     password: 'password123',
                     name: 'Test User'
                 });
@@ -26,11 +25,11 @@ describe('User API', () => {
 
         it('should not allow duplicate usernames', async () => {
             // Register user pertama
-            await request.post('/api/users')
+            await request.post('/api/users/register')
                 .send({ username: 'duplicate', password: 'pass1', name: 'User 1' });
 
             // Coba register dengan username yang sama
-            const res = await request.post('/api/users')
+            const res = await request.post('/api/users/register')
                 .send({ username: 'duplicate', password: 'pass2', name: 'User 2' });
 
             expect(res.status).toBe(400);
@@ -39,7 +38,7 @@ describe('User API', () => {
         });
 
         it('should validate input data', async () => {
-            const res = await request.post('/api/users')
+            const res = await request.post('/api/users/register')
                 .send({ username: '', password: '', name: 'A' });
 
             expect(res.status).toBe(400);
@@ -48,5 +47,38 @@ describe('User API', () => {
         });
     });
 
+    describe('POST /api/users/login',()=>{
+        
+        //! should login as user
+        it('should login as user', async () => {
+            const newUser = await request.post('/api/users/register').send({
+                username: 'testuser2',
+                password: 'password123',
+            })
+            const res = await request.post('/api/users/login')
+                .send({
+                    username: 'testuser2',
+                    password: 'password123',
+                });
+            // expect(res.status).toBe(200);
+            console.log(res.body);
+        });
+
+        //! should has acces token
+        it('should has acces token', async () => {
+            const newUser = await request.post('/api/users/register').send({
+                username: 'testuser2',
+                password: 'password123',
+            })
+            const res = await request.post('/api/users/login')
+                .send({
+                    username: 'testuser2',
+                    password: 'password123',
+                });
+                console.log(res.body);
+            // expect(res.body).toHaveProperty('accessToken');;
+        });
+        
+    });
     // Tambahkan test untuk endpoint lain seperti login, getProfile, dll.
 });

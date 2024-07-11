@@ -15,10 +15,10 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  username  String   @db.VarChar(100)
+  username  String   @db.VarChar(100) @unique
   password  String   @db.VarChar(100)
   name      String   @db.VarChar(100)
-  token     String?  @db.VarChar(100)
+  token     String?  @db.Text
   expiresAt DateTime?
   contacts  Contact[]
 

@@ -1,4 +1,4 @@
-import express, { urlencoded } from "express";
+import express, { urlencoded, type Request, type Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from 'express-rate-limit';
@@ -22,7 +22,9 @@ app.use(urlencoded({ extended: true }))
 // routes
 app.use('/api', routes);
 // app.use(errorMiddleware);
-
-app.listen(3000, () => {
-    console.log('Server running in http://localhost:3000')
+app.get('/',(req:Request,res:Response)=>{
+    res.json('Hello World')
+})
+app.listen(4000, () => {
+    console.log('Server running in http://localhost:4000')
 })
