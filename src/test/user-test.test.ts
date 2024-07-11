@@ -47,8 +47,8 @@ describe('User API', () => {
         });
     });
 
-    describe('POST /api/users/login',()=>{
-        
+    describe('POST /api/users/login', () => {
+
         //! should login as user
         it('should login as user', async () => {
             const newUser = await request.post('/api/users/register').send({
@@ -60,8 +60,8 @@ describe('User API', () => {
                     username: 'testuser2',
                     password: 'password123',
                 });
-            // expect(res.status).toBe(200);
-            console.log(res.body);
+            expect(res.status).toBe(200);
+            // console.log(res.body);
         });
 
         //! should has acces token
@@ -75,10 +75,45 @@ describe('User API', () => {
                     username: 'testuser2',
                     password: 'password123',
                 });
-                console.log(res.body);
-            // expect(res.body).toHaveProperty('accessToken');;
+            // console.log(res.body);
+            expect(res.body.data).toHaveProperty('accessToken');
         });
+        //! should not login as user
+        it('should not login as user', async () => {
+            const res = await request.post('/api/users/login')
+                .send({
+                    username: 'testnotusers',
+                    password: 'password123',
+                });
+            expect(res.status).toBe(400);
+            expect(res.body.errors).toBeDefined()
+            // console.log(res.body);
+        });
+
         
     });
-    // Tambahkan test untuk endpoint lain seperti login, getProfile, dll.
-});
+
+    describe('GET /api/contact', () => {
+        //! should get all contacts
+        it('should get all contacts', async () => {
+
+            await request.post('/api/users/register').send({
+                username: 'testuser2',
+                password: 'password123',
+            })
+            const userLogin = await request.post('/api/users/login')
+                .send({
+                    username: 'testuser2',
+                    password: 'password123',
+                });
+            const res = await request.get('/api/contact')
+                .set('Authorization', 'Bearer ' + userLogin.body.data.accessToken);
+            expect(res.status).toBe(200);
+            // expect(res.body.data).toBeDefined();
+            // console.log(res.body);
+
+        })
+
+        // Tambahkan test untuk endpoint lain seperti login, getProfile, dll.
+    });
+})

@@ -2,7 +2,6 @@ import type { NextFunction, Request, Response } from "express";
 import { JWTToken } from "../utils/jwt";
 import type { payload } from "../model/user-model";
 import { TokenExpiredError } from "jsonwebtoken";
-import { UserController } from "../controller/user-controller";
 import uuid4 from "uuid4";
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
