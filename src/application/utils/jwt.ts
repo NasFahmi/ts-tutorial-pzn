@@ -8,7 +8,7 @@ import { ResponseError } from "../error/response-error";
 export class JWTToken {
   public static generateAccessToken(payload: object): string {
     return jwt.sign(payload, Bun.env.ACCESS_TOKEN_SECRET!, {
-      expiresIn: "15m",
+      expiresIn: "5s",
       algorithm: "HS256",
     });
   }

@@ -1,9 +1,13 @@
 import express from 'express';
-import { userRoutes } from "./user-route";
-import { authMiddleware } from '../middleware/auth-middleware';
-import { contactRoutes } from './contact-route';
+import { publicRoutes } from './public-route';
+import { privateRoutes } from './private-route';
+
 const router = express.Router();
 
-router.use('/users', userRoutes);
-router.use('/contact',authMiddleware,contactRoutes)
+// Menggunakan rute publik
+router.use('/public', publicRoutes);
+
+// Menggunakan rute privat
+router.use('/private', privateRoutes);
+
 export default router;
