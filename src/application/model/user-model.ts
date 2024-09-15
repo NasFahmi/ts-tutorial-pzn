@@ -87,7 +87,7 @@ export type LogoutUserResponse = {
 
 export interface payload {
     sub: string,
-    name: string,
+    username: string,
     jti: string,  // Unique identifier for this token
     iat: number,
 }

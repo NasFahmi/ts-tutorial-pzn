@@ -22,7 +22,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
                 const decoded = await JWTToken.verifyRefreshToken(refreshToken) as payload; //hasil payload
                 const newPayload : payload = {
                     sub : decoded.sub,
-                    name : decoded.name,
+                    username : decoded.username,
                     iat :Math.floor(Date.now() / 1000),
                     jti: uuid4()
                 }
