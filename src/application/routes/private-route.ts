@@ -8,6 +8,6 @@ export const privateRoutes = express.Router();
 // Rute yang memerlukan autentikasi
 privateRoutes.use(authMiddleware);
 
-privateRoutes.get('/me', UserController.me);
-privateRoutes.post('/logout', UserController.logout);
+privateRoutes.get('/users/me', UserController.me);
+privateRoutes.post('/users/logout', UserController.logout);
 privateRoutes.get('/contact', contactController.getAllContact);

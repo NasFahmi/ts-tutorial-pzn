@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from 'express-rate-limit';
 import routes from "./application/routes/routes";
+import cookieParser from 'cookie-parser'; // Import cookie-parser
 export const app = express()
 
 app.use(helmet())
@@ -16,15 +17,15 @@ const limiter = rateLimit({
     message: 'Too many requests from this IP, please try again later',
 });
 app.use(limiter)
-
+app.use(cookieParser()); // Add cookie-parser middleware
 app.use(express.json())
 app.use(urlencoded({ extended: true }))
 // routes
 app.use('/api', routes);
-// app.use(errorMiddleware);
-app.get('/',(req:Request,res:Response)=>{
-    res.json('Hello World')
-})
+
+app.get('/', (req: Request, res: Response) => {
+    res.json('Hello World');
+});
 app.listen(4000, () => {
     console.log('Server running in http://localhost:4000')
 })

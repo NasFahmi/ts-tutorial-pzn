@@ -5,9 +5,9 @@ import { privateRoutes } from './private-route';
 const router = express.Router();
 
 // Menggunakan rute publik
-router.use('/public', publicRoutes);
+router.use('/v1', publicRoutes);
 
 // Menggunakan rute privat
-router.use('/private', privateRoutes);
+router.use('/v1', privateRoutes);
 
 export default router;

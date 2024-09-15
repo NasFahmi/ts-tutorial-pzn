@@ -91,3 +91,12 @@ export interface payload {
     jti: string,  // Unique identifier for this token
     iat: number,
 }
+// types/express.d.ts
+
+declare global {
+    namespace Express {
+        interface Request {
+            user?: payload; // Menambahkan properti user dengan tipe JwtPayload atau sesuai dengan payload token Anda
+        }
+    }
+}

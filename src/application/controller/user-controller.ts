@@ -100,7 +100,29 @@ export class UserController {
   }
   static async me(req: Request, res: Response, next: NextFunction) {
     try {
-      // Mengambil accessToken dari header Authorization
+      //! newAccessToken
+      const newAccessToken = res.locals.accessToken;
+      console.log('newAccessToken', newAccessToken)
+
+      if (newAccessToken) {
+        const decodedNewToken: JwtPayload = await UserService.verifyAccessToken(
+          newAccessToken
+        );
+        const informationDecodedNewAccesToken = decodedNewToken as payload;
+        const user = await UserService.getUserByName(
+          informationDecodedNewAccesToken.username
+        );
+        return res.status(200).json({
+          statuscode: 200,
+          data: {
+            id : user.id,
+            username : user.username,
+            name : user.name,
+          },
+          accesToken : newAccessToken, // Tambahkan accessToken baru ke dalam response
+        });
+      }
+      // !check token
       const authHeader = req.headers["authorization"];
       console.log(`auth ${authHeader}`);
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -128,14 +150,7 @@ export class UserController {
           .status(404)
           .json({ statuscode: 404, message: "User not found" });
       }
-      const newAccessToken = res.locals.accessToken;
-      if (accessToken) {
-        return res.status(200).json({
-          statuscode: 200,
-          data: user,
-          accessToken, // Tambahkan accessToken baru ke dalam response
-        });
-      }
+      
       return res.status(200).json({
         statuscode: 200,
         data: {

@@ -3,53 +3,51 @@ import { JWTToken } from "../utils/jwt";
 import type { payload } from "../model/user-model";
 import { TokenExpiredError } from "jsonwebtoken";
 import uuid4 from "uuid4";
+import { ResponseError } from "../error/response-error";
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(' ')[1]; //get AccesToken dari header
-    if (!token) return res.status(401).json({ message: 'No token provided' }) //jika tidak ada AccesToken
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'No token provided' });
+
     try {
-        await JWTToken.verifyAccessToken(token) as payload; //! berisi payload
+        const decoded = await JWTToken.verifyAccessToken(token) as payload;
+        req.user = decoded;
         next();
     } catch (error) {
-        if (error instanceof TokenExpiredError) {
-            const refreshToken = req.cookies.refreshToken;
-            if (!refreshToken) { //! jika tidak ada refresh token
-                return res.status(401).json({ message: 'Unauthorized' });
-            }
-            //! jika ada refresh token, namun AccestokenExpired
-            //! generateAccessTokenBaru dengan verify refreshtoken terlebih dahulu
-            try {
-                const decoded = await JWTToken.verifyRefreshToken(refreshToken) as payload; //hasil payload
-                const newPayload : payload = {
-                    sub : decoded.sub,
-                    username : decoded.username,
-                    iat :Math.floor(Date.now() / 1000),
-                    jti: uuid4()
+        if (error instanceof ResponseError) {
+            if (error.status === 401 && error.message === "Token expired") {
+                const refreshToken = req.cookies.refreshToken;
+                if (!refreshToken) {
+                    return res.status(401).json({ message: 'Refresh token not found' });
                 }
-                const newAccesToken = await JWTToken.generateAccessToken(newPayload);
-                res.locals.accessToken = newAccesToken; // Simpan accessToken baru di response
-                // req.user = decoded; // Set user di request dengan payload baru
-                // res.setHeader('Authorization', `Bearer ${newAccesToken}`);
-                next()
-                // const decoded = await JWTToken.verifyRefreshToken(refreshToken);
-            } catch (error) {
-                return res.status(401).json({ message: 'Unauthorized' });
+                console.log('refreshToken', refreshToken)
+                try {
+                    const decoded = await JWTToken.verifyRefreshToken(refreshToken) as payload;
+                    const newPayload: payload = {
+                        sub: decoded.sub,
+                        username: decoded.username,
+                        iat: Math.floor(Date.now() / 1000),
+                        jti: uuid4()
+                    };
+                    const newAccessToken = await JWTToken.generateAccessToken(newPayload);
+                    
+                    // res.setHeader('Authorization', `Bearer ${newAccessToken}`);
+                    res.locals.accessToken = newAccessToken; 
+                    req.user = newPayload;
+                    console.log('success generate new accessToken')
+                    next();
+                } catch (refreshError) {
+                    if (refreshError instanceof ResponseError) {
+                        return res.status(refreshError.status).json({ message: refreshError.message });
+                    }
+                    return res.status(401).json({ message: 'Invalid refresh token' });
+                }
+            } else {
+                return res.status(error.status).json({ message: error.message });
             }
-            //! set header dengan token baru
+        } else {
+            console.error('Unexpected error in auth middleware:', error);
+            return res.status(500).json({ message: 'Internal server error' });
         }
-        else{
-            return res.status(401).json({
-                message:"Token Not Valid"
-            })
-        }
-
-
     }
-    // if(!token) return res.status(401).json({message: 'Token not found'}
-    //     try{
-    //         const decoded = await jwt.verify(token, process.env.JWT_SECRET as string);
-    //         req.user = decoded;
-    //         next();
-    //         }catch(err){
-
-}
+};
