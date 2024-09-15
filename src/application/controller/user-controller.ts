@@ -128,6 +128,14 @@ export class UserController {
           .status(404)
           .json({ statuscode: 404, message: "User not found" });
       }
+      const newAccessToken = res.locals.accessToken;
+      if (accessToken) {
+        return res.status(200).json({
+          statuscode: 200,
+          data: user,
+          accessToken, // Tambahkan accessToken baru ke dalam response
+        });
+      }
       return res.status(200).json({
         statuscode: 200,
         data: {
